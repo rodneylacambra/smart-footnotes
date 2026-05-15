@@ -1,0 +1,333 @@
+/**
+ * Smart Footnotes Pro — themes.css (Phase 2: PRO)
+ *
+ * Loaded only when PRO is active. Layers on top of frontend.css.
+ * Covers: tooltip, mobile drawer, side panel, active states, animations.
+ * All values consume the same CSS variables defined in frontend.css.
+ */
+
+/* ── ACTIVE STATE ENHANCEMENTS (PRO) ────────────────────────────────────── */
+
+sup.sfn-ref--active a {
+    opacity: 0.75;
+    outline: 2px solid var(--sfn-color-primary);
+    outline-offset: 2px;
+}
+
+.sfn-footnote--active {
+    background: color-mix(in srgb, var(--sfn-color-primary) 8%, transparent);
+    border-radius: var(--sfn-radius, 4px);
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+/* ── TOOLTIP ─────────────────────────────────────────────────────────────── */
+
+.sfn-tooltip {
+    display: block;              /* override frontend.css display:none */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 99999;
+    max-width: 320px;
+    min-width: 160px;
+    pointer-events: none;        /* allow hover-through by default */
+
+    /* Visibility controlled by class, not display, for animation */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
+}
+
+.sfn-tooltip--visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;        /* allow user to move into tooltip */
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Tooltip box */
+.sfn-tooltip__body {
+    background: var(--sfn-tooltip-bg, #1a1a2e);
+    color: var(--sfn-tooltip-text, #f5f5f5);
+    font-size: 13px;
+    line-height: 1.55;
+    padding: 10px 14px;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.12);
+    word-break: break-word;
+}
+
+/* Arrow */
+.sfn-tooltip__arrow {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--sfn-tooltip-bg, #1a1a2e);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    bottom: 100%;
+    transform: translateX(-50%);
+}
+
+/* Arrow flips when tooltip is above the ref */
+.sfn-tooltip--above .sfn-tooltip__arrow {
+    bottom: auto;
+    top: 100%;
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+}
+
+.sfn-tooltip--above .sfn-tooltip__body {
+    order: -1;
+}
+
+/* When above, body comes before arrow in DOM but we stack them via flex */
+.sfn-tooltip--above {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.sfn-tooltip--below {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── MOBILE DRAWER ───────────────────────────────────────────────────────── */
+
+/* Backdrop */
+.sfn-drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.sfn-drawer-backdrop--visible {
+    display: block;
+    opacity: 1;
+}
+
+/* Drawer panel */
+.sfn-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    background: var(--sfn-color-bg, #fff);
+    border-radius: 0;
+    padding: 0 0 env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.14);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+}
+
+.sfn-drawer--open {
+    transform: translateY(0);
+}
+
+/* Drag handle */
+.sfn-drawer__handle {
+    width: 36px;
+    height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+}
+
+/* Header row */
+.sfn-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 8px;
+    flex-shrink: 0;
+}
+
+.sfn-drawer__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sfn-color-text, #1a1a2e);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.5;
+}
+
+.sfn-drawer__close {
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    font-size: 16px;
+    color: var(--sfn-color-text-muted, #6b6b8a);
+    cursor: pointer;
+    border-radius: 4px;
+    line-height: 1;
+    transition: background 0.1s ease;
+}
+
+.sfn-drawer__close:hover,
+.sfn-drawer__close:focus {
+    background: rgba(0, 0, 0, 0.06);
+    outline: none;
+}
+
+/* Body */
+.sfn-drawer__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 20px 24px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--sfn-color-text, #1a1a2e);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* ── INLINE EXPAND ───────────────────────────────────────────────────────── */
+
+.sfn-inline-note {
+    display: none;              /* shown by JS */
+
+    /* Block-level: breaks out of the prose line so it sits below the marker,
+       not jammed mid-sentence. Using block on a span requires the JS to
+       set display:block (not inline-block) — see setInlineOpen(). */
+    margin: 8px 0 8px 0;
+    padding: 10px 14px;
+
+    background: color-mix(in srgb, var(--sfn-color-primary) 6%, transparent);
+    border-left: 3px solid var(--sfn-color-primary, #534ab7);
+    border-radius: 0 var(--sfn-radius, 4px) var(--sfn-radius, 4px) 0;
+
+    font-size: 0.9em;
+    line-height: 1.6;
+    color: var(--sfn-color-text, #1a1a2e);
+
+    animation: sfn-inline-in 0.18s ease;
+
+    /* Close button row */
+    position: relative;
+}
+
+/* Close (×) button inside the note */
+.sfn-inline-note__close {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--sfn-color-text-muted, #6b6b8a);
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 4px;
+    opacity: 0.5;
+    transition: opacity 0.1s ease;
+}
+
+.sfn-inline-note__close:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.06);
+}
+
+@keyframes sfn-inline-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── SIDE PANEL ──────────────────────────────────────────────────────────── */
+
+.sfn-sidepanel {
+    display: none;             /* shown by JS on desktop sidepanel-mode pages */
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 9000;
+    width: 260px;
+    max-height: 60vh;
+    overflow-y: auto;
+
+    background: var(--sfn-color-bg, #fff);
+    border: 1px solid var(--sfn-color-border, #e0ddf8);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    box-shadow: -3px 0 16px rgba(0, 0, 0, 0.08);
+    padding: 14px 16px;
+
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sfn-sidepanel--active {
+    opacity: 1;
+}
+
+.sfn-sidepanel__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sfn-color-primary, #534ab7);
+    margin-bottom: 8px;
+}
+
+.sfn-sidepanel__body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--sfn-color-text, #1a1a2e);
+}
+
+/* Hide side panel on mobile */
+@media (max-width: 768px) {
+    .sfn-sidepanel { display: none !important; }
+}
+
+/* ── MARKER: has-tooltip cursor cue ─────────────────────────────────────── */
+
+sup.sfn-ref.sfn-has-tooltip {
+    cursor: help;
+}
+
+sup.sfn-ref[data-mode="inline"] {
+    cursor: pointer;
+}
+
+/* ── REDUCED MOTION ──────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .sfn-tooltip,
+    .sfn-tooltip--visible,
+    .sfn-drawer,
+    .sfn-drawer-backdrop,
+    .sfn-sidepanel,
+    .sfn-inline-note {
+        transition: none;
+        animation: none;
+    }
+
+    .sfn-drawer--open {
+        transform: translateY(0);
+    }
+}
+
+/* ── PRINT: hide all PRO UI chrome ──────────────────────────────────────── */
+
+@media print {
+    .sfn-tooltip,
+    .sfn-drawer,
+    .sfn-drawer-backdrop,
+    .sfn-sidepanel,
+    .sfn-inline-note {
+        display: none !important;
+    }
+}
